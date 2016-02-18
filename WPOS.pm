@@ -345,7 +345,6 @@ sub parsepos()
 				my @ps=@h{@header};
 				my $p=join",",@ps;
 				push @lists,$p;
-				print"$p\n";
 				print OUT "$p\n";
 			}
 		}
@@ -498,7 +497,7 @@ sub formatlinepricezj()
 	$chg=&getpart($line,'closeprice')     -&getpart($line,'presettlementprice');$chg = sprintf("%.3f", $chg);push @ret,$chg;
 	$chg=&getpart($line,'settlementprice')-&getpart($line,'presettlementprice');$chg = sprintf("%.3f", $chg);push @ret,$chg;
 	my $l=join",",@ret;
-	print OUT "$l\n" if $l!~/,,/;#原因在于有些天TF没有成交 这会导致有几个,,,连着出现
+	print OUT "$l\n" if $l!~/,,/;#原因在于有些天5年国债没有成交 这会导致有几个,,,连着出现
 }
 sub formatlinepossq()
 {
@@ -530,7 +529,7 @@ sub prcfileavailablezj()
 }
 sub downloadposzj()
 {
-	my @ctrs=qw!IF TF!;
+	my @ctrs=qw!IF IH IC TF T!;
 	for my $ctr(@ctrs)
 	{
 		next unless &istrading($date,$ctr);
@@ -682,11 +681,16 @@ sub downloadurl()
 		my $sz= -s $file;$sz+=0;
 		if ($sz<=$setsize)
 		{
-			#system($cmd);
-			print "in 1 10 $url $file $type\n";
-			dl_url($url,$file);
+			if($exg=~/zs/i)
+			{
+				dl_url_zs($url,$file);
+			}
+			else
+			{
+				dl_url($url,$file);
+			}
 			#在此加入转码以避免对存在的文件进行转码，以防2次转码 
-			&utf82gbk($file) if(/utf82gbk/~~@types or &file_is_utf8($file));
+			&utf82gbk($file) if(/utf82gbk/~~@types);
 			#没有设定文件大小时只下载一次
 			return if -s $file and !$setsize;
 			$sz= -s $file;$sz+=0;
@@ -700,20 +704,16 @@ sub downloadurl()
 sub utf82gbk()
 {
 	my $file=shift @_;
-	print"utf8 to gbk $file\n";
 	return unless -s $file;
 	my @arr=();
 	open(IN,$file);
 	while(<IN>)
 	{
 		my $line=$_;
-#		print $line;
 		$line = encode("gbk", decode("utf8", $line));
-#		print $line;
 		push @arr,$line;
 	}
 	close IN;
-	print"changing u2g $file\n";
 	open(OUT , " > $file");
 	for my $line(@arr)
 	{
@@ -757,6 +757,10 @@ sub istrading()
 	return 0 if $ctr eq 'fb'	and $date <20131206;
 	return 0 if $ctr eq 'bb'	and $date <20131206;
 	return 0 if $ctr eq 'TF'	and $date <20130906;
+	return 0 if $ctr eq 'T'	and $date <20150320;
+	return 0 if $ctr eq 'IH'	and $date <20150416;
+	return 0 if $ctr eq 'IC'	and $date <20150416;
+	
 	return 1;
 }
 sub alreadyupdatedds()
@@ -835,23 +839,5 @@ sub checksumds()#大商所存在合约加和与品种数不等的情况 函数检测此错误，并给出相应
 			}
 		}
 	}
-}
-sub file_is_utf8()
-{
-#	return 1;
-	my $file=shift @_;
-	my $line="";
-	#my $ret=0;
-	open(IN," $file");
-	while(<IN>)
-	{
-		$line.=$_;
-		#$ret=1 if(index($_,'encoding="UTF-8"')!=-1);
-	}
-	
-	close IN;
-	say detect($line) ;
-	return 0 if(detect($line) =~ /gb/);
-	return 1;
 }
 1;
