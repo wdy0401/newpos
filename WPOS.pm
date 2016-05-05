@@ -142,7 +142,7 @@ sub parseprice()
 	{
 		my @plists;
 		open(OUT ," > $outfile") or die "Cannot open $outfile\n";
-		#my @header=qw/日期 品种 合约 开 高 低 收 结算 成交 持仓 成交金额/;
+		#my @header=qw/日期 品种 合约 开 高 低 收 结算 成交 持仓 今收-昨结 今结-昨结/;
 		my $tline="";
 		open (IN,"$infile") or die "Cannot open file $infile\n";
 		while(<IN>)
@@ -204,8 +204,6 @@ sub parseprice()
 	}
 	if ($exg eq 'zs')
 	{
-		my $infile="$filedir/${date}_prc.txt";
-		my $outfile="$filedir/${date}_prc.csv";
 		open(IN,"$infile") or die "Cannot open infile $infile\n";
 		open(OUT ," > $outfile") or die "Cannot open outfile $outfile\n";
 		if ($date>=20050429 and $date<=20100825)

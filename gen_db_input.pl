@@ -95,11 +95,11 @@ sub checkdbfile()
 {
 	for my $dt (@days)
 	{
-		for my $f(qw!volume long short!)
+		for my $f(qw!vol long short!)
 		{
 			my ($year)=($dt=~/^(\d{4})/);
 			my $file= "$dir/$f/$year/${dt}.csv";
-			if(!-s $file){warn "DB file error found\n";next;}
+			if(!-s $file){warn "DB file error found $file\n";next;}
 			open(IN," $file");
 			while(<IN>)
 			{
